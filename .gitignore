@@ -34,3 +34,6 @@
 # Debug files
 *.dSYM/
 *.su
+
+# Exclude binary folders
+bin/

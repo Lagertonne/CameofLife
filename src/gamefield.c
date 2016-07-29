@@ -1,13 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
-
-typedef struct {
-	int **field;
-	int width;
-	int height;
-} gameField;
-
+#include "gamefield.h"
 
 void fill_with_zeros( gameField *gF ) {
 	for( int z=0; z<gF->height; z++) {
@@ -103,23 +97,8 @@ gameField *calc_new_state(gameField *gf) {
 }
 
 void set_random_cells(gameField *gf, int n) {
+	srand(time(NULL));
 	for( int i=0; i<n; i++ ) {
 		set_cell(gf, rand()%gf->width, rand()%gf->height, 1);
 	}
-}
-
-int main() {
-	srand(time(NULL));
-	gameField *field = make_gameField(10, 10);
-	/*set_cell(field, 3, 3, 1);
-	set_cell(field, 4, 3, 1);
-	set_cell(field, 5, 3, 1);*/
-	set_random_cells(field, 20);
-	print_gameField(field);
-	for( int i=0; i<5; i++ ) {
-		printf("\n");
-		field = calc_new_state(field);
-		print_gameField(field);
-	}
-	destroy_gameField(field);
 }

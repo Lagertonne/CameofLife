@@ -4,52 +4,80 @@
 #include "gamefield.h"
 
 const int HEIGHT=800;
-const int WIDTH=600;
+const int WIDTH=800;
 
 typedef struct {
 	SDL_Rect rect;
 	SDL_Color color;
 } Cell;
 
+typedef struct {
+	Cell *cells;
+	int size;
+} CellList;
+
 gameField *generate_gameField(int x, int y) {
-	gameField *gf = make_gameField(10, 10);
-	set_random_cells(gf, 20);
+	gameField *gf = make_gameField(x, y);
+	set_random_cells(gf, 100);
+	set_cell(gf, 10, 10, 1);
+	set_cell(gf, 11, 10, 1);
+	set_cell(gf, 12, 10, 1);
+	set_cell(gf, 13, 10, 1);
+	set_cell(gf, 13, 11, 1);
+	set_cell(gf, 10, 11, 1);
 	return gf;
 }
 
-Cell *gamefield_to_cells( gameField *gf ) {
-	int elems = (gf->width)*(gf->height);
-	Cell *cells = malloc(elems*sizeof(Cell));
-	int rect_width = WIDTH/gf->width;
-	int rect_height = HEIGHT/gf->height;
+CellList *gamefield_to_cells( gameField *gf ) {
+	CellList *list = malloc(sizeof(CellList));
+	int elems = (gf->width)*(gf->height);	
+	list->cells = malloc(elems*sizeof(Cell));
+	int rect_width = 0;
+	if ( WIDTH <= HEIGHT ) {
+		rect_width = WIDTH/gf->width;
+		//rect_height = WIDTH/gf->height;
+	} else {
+		rect_width = HEIGHT/gf->height;
+	}
+	//int rect_width = WIDTH/gf->width;
+	//int rect_height = HEIGHT/gf->height;
+	list->size=elems;
 
 	int cell_count = 0;
 	int posX = 0;
 	int posY = 0;
+
 	for (int z=0; z<gf->width; z++) {
 		for (int s=0; s<gf->height; s++) {
-			cells[cell_count].rect.x = posX;
-			cells[cell_count].rect.y = posY;
-			cells[cell_count].rect.w = rect_width;
-			cells[cell_count].rect.h = rect_height;
+			list->cells[cell_count].rect.x = posX;
+			list->cells[cell_count].rect.y = posY;
+			list->cells[cell_count].rect.w = rect_width;
+			list->cells[cell_count].rect.h = rect_width;
 			if (gf->field[z][s] >= 1) {
-				cells[cell_count].color.r = 255;
-				cells[cell_count].color.g = 255;
-				cells[cell_count].color.b = 255;
+				list->cells[cell_count].color.r = 255;
+				list->cells[cell_count].color.g = 255;
+				list->cells[cell_count].color.b = 255;
 			} else {
-				cells[cell_count].color.r = 0;
-				cells[cell_count].color.g = 50;
-				cells[cell_count].color.b = 0;
+				list->cells[cell_count].color.r = 0;
+				list->cells[cell_count].color.g = 50;
+				list->cells[cell_count].color.b = 0;
 			}
 
-
 			posX += rect_width;
-			posY += rect_height;
 			cell_count++;
 		}
+		posY += rect_width;
+		posX = 0;
 	}
 
-	return cells;
+	return list;
+}
+
+void draw_field( SDL_Renderer *rend, CellList *list) {
+	for ( int i=0; i<list->size; i++) {
+		SDL_SetRenderDrawColor( rend, list->cells[i].color.r, list->cells[i].color.g, list->cells[i].color.b, list->cells[i].color.a );
+		SDL_RenderFillRect( rend, &list->cells[i].rect );
+	}
 }
 
 int main() {
@@ -63,7 +91,7 @@ int main() {
 	}
 	atexit(SDL_Quit);
 
-	window = SDL_CreateWindow("Came of Life - by lgrt", 100, 100, HEIGHT, WIDTH, SDL_WINDOW_SHOWN);
+	window = SDL_CreateWindow("Came of Life - by lgrt", 50, 50, HEIGHT, WIDTH, SDL_WINDOW_SHOWN);
 	if (window == NULL) {
 		fprintf(stderr, "\nCould not create window: %s\n", SDL_GetError());
 		return 1;
@@ -78,17 +106,22 @@ int main() {
 		return 1;
 	}
 
-	gameField *gf = generate_gameField(10, 10);
+	gameField *gf = generate_gameField(50, 50);
 
 	while(quit == 0) {
+		SDL_SetRenderDrawColor(rend, 10, 0, 0, 0);
 		while (SDL_PollEvent(&e)) {
 			if (e.type == SDL_QUIT) {
 				quit = 1;
 			}
 		}
-		Cell *cells = gamefield_to_cells(gf);
-		
+		SDL_RenderClear(rend);
+
+		CellList *cells = gamefield_to_cells(gf);
+		draw_field( rend, cells);
+		SDL_RenderPresent(rend);	
 		SDL_Delay(500);
+		gf = calc_new_state(gf);	
 	}
 
 	SDL_DestroyRenderer(rend);

@@ -19,7 +19,7 @@ gameField *generate_gameField(int x, int y) {
 
 Cell *gamefield_to_cells( gameField *gf ) {
 	int elems = (gf->width)*(gf->height);
-	Cell *cells = malloc(elems*sizeof(SDL_Rect));
+	Cell *cells = malloc(elems*sizeof(Cell));
 	int rect_width = WIDTH/gf->width;
 	int rect_height = HEIGHT/gf->height;
 
@@ -55,6 +55,8 @@ Cell *gamefield_to_cells( gameField *gf ) {
 int main() {
 	SDL_Window *window = NULL; 
 	SDL_Renderer *rend = NULL;
+	SDL_Event e;
+	int quit = 0;
 	if  ( SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0 ) { 
 		fprintf(stderr, "\nUnable to initialize SDL %s\n", SDL_GetError());
 		return 1;
@@ -78,8 +80,13 @@ int main() {
 
 	gameField *gf = generate_gameField(10, 10);
 
-	while(1) {
-		Cell *cell = gamefield_to_cells(gf);
+	while(quit == 0) {
+		while (SDL_PollEvent(&e)) {
+			if (e.type == SDL_QUIT) {
+				quit = 1;
+			}
+		}
+		Cell *cells = gamefield_to_cells(gf);
 		
 		SDL_Delay(500);
 	}

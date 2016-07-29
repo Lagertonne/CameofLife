@@ -1,10 +1,14 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_video.h>
 #include <stdio.h>
+#include <string.h>
 #include "gamefield.h"
+
 
 const int HEIGHT=800;
 const int WIDTH=800;
+
+int borders = 0;
 
 typedef struct {
 	SDL_Rect rect;
@@ -53,6 +57,8 @@ CellList *gamefield_to_cells( gameField *gf ) {
 			list->cells[cell_count].rect.y = posY;
 			list->cells[cell_count].rect.w = rect_width;
 			list->cells[cell_count].rect.h = rect_width;
+
+			list->cells[cell_count].color.a = 255;
 			if (gf->field[z][s] >= 1) {
 				list->cells[cell_count].color.r = 255;
 				list->cells[cell_count].color.g = 255;
@@ -77,10 +83,26 @@ void draw_field( SDL_Renderer *rend, CellList *list) {
 	for ( int i=0; i<list->size; i++) {
 		SDL_SetRenderDrawColor( rend, list->cells[i].color.r, list->cells[i].color.g, list->cells[i].color.b, list->cells[i].color.a );
 		SDL_RenderFillRect( rend, &list->cells[i].rect );
+
+		if (borders != 0) {
+			SDL_SetRenderDrawColor( rend, 255, 255, 255, 255 );
+			SDL_RenderDrawRect( rend, &list->cells[i].rect );
+		}
+		
 	}
 }
 
-int main() {
+void parse_commandline_arguments( char *args[], int size ) {
+	for (int i=1; i<size; i++) {
+		if ( strcmp(args[i], "--border") == 0 ) {
+			borders = 1;
+		}
+	}
+
+}
+
+int main( int argc, char *argv[] ) {
+	parse_commandline_arguments( argv, argc );
 	SDL_Window *window = NULL; 
 	SDL_Renderer *rend = NULL;
 	SDL_Event e;
